@@ -11,20 +11,20 @@ export class Car {
         this.root = object
 
         // car "feel" parameters
-        this.MAX_SPEED = 2200;
-        this.MAX_REVERSE_SPEED = -1500;
+        this.MAX_SPEED = 1600;
+        this.MAX_REVERSE_SPEED = -1000;
 
         this.MAX_WHEEL_ROTATION = 0.6;
 
-        this.FRONT_ACCELERATION = 1250;
-        this.BACK_ACCELERATION = 1500;
+        this.FRONT_ACCELERATION = 700;
+        this.BACK_ACCELERATION = 1000;
 
         this.WHEEL_ANGULAR_ACCELERATION = 1.5;
 
         this.FRONT_DECCELERATION = 750;
         this.WHEEL_ANGULAR_DECCELERATION = 1.0;
 
-        this.STEERING_RADIUS_RATIO = 0.01;
+        this.STEERING_RADIUS_RATIO = 0.02;
 
         this.MAX_TILT_SIDES = 0.03;
         this.MAX_TILT_FRONTBACK = 0.015;
@@ -51,6 +51,12 @@ export class Car {
         this.frontRightWheelRoot.add(this.frontRightWheelMesh)
         this.root.add(this.frontLeftWheelRoot)
         this.root.add(this.frontRightWheelRoot)
+    }
+    setFrames(params){
+        this.carInnerFrame = params.carInnerFrame
+        this.carOuterFrame = params.carOuterFrame
+        this.root.add(this.carInnerFrame)
+        this.root.add(this.carOuterFrame)
     }
     clamp(x, a, b) { return x < a ? a : (x > b ? b : x); }
     exponentialEaseOut(k) { return k == 1 ? 1 : -Math.pow(2, -10 * k) + 1; }

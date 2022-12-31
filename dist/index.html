@@ -18,11 +18,16 @@
             user-select: none;
             display: none;
         }
-        #score, #close-call-bonus, #opposite-bonus{
+
+        #score,
+        #close-call-bonus,
+        #opposite-bonus,
+        #max-speed-bonus {
             display: inline;
         }
 
-        #menu-container, #main-menu-container {
+        #menu-container,
+        #main-menu-container {
             position: absolute;
             background-color: rgb(98, 98, 98);
             top: 50%;
@@ -35,26 +40,61 @@
             padding: 1em;
             border-radius: 10px;
         }
-        #main-menu-container{
-            display: flex;
+
+        #main-menu-container {
+            display: none;
         }
 
-        button{
+        button {
             padding: 0.5em;
             width: 150px;
             cursor: pointer;
         }
-        #menu-title{
+
+        #menu-title {
             font-size: 1.2em;
             padding: 0.5em;
         }
-        #close-call-container, #opposite-bonus-container{
+
+        #close-call-container,
+        #opposite-bonus-container,
+        #max-speed-bonus-container {
             font-size: 0.5em;
             color: green;
             display: none;
         }
-        #canvas-container{
+
+        #canvas-container {
             background-color: cornflowerblue;
+        }
+
+        #loading-container {
+            position:absolute;
+            width: 200px;
+            height: 200px;
+            top: calc(50% - 200px / 2);
+            left: calc(50% - 200px / 2);
+            border-radius: 50%;
+            border: 4px solid #ddd;
+            border-top-color: #333;
+            animation: spin 1s linear infinite;
+        }
+        #loading-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            user-select: none;
+        }
+        .game-over{
+            white-space: pre-wrap;
+            text-align: center;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
@@ -71,6 +111,10 @@
             Opposite line bonus:
             <div id="opposite-bonus">0</div>
         </div>
+        <div id="max-speed-bonus-container">
+            Max speed bonus:
+            <div id="max-speed-bonus">0</div>
+        </div>
     </div>
     <div id="main-menu-container">
         <div id="menu-title">Choose gamemode
@@ -79,11 +123,15 @@
         <button id="play-two-button">Play Two Way Road</button>
     </div>
     <div id="menu-container">
-        <div id="menu-title">Game Over
-        </div>
+        <div id="menu-title" class="game-over">Game Over</div>
         <button id="play-again-button">Play Again</button>
         <button id="menu-return-button">Return to menu</button>
     </div>
+    <div id="loading-container">
+        <!-- loading animation goes here -->
+        
+    </div>
+    <div id="loading-text">Loading</div>
 
     <!-- Div to hold the Three.js canvas -->
     <div id="canvas-container"></div>

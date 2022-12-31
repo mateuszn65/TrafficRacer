@@ -12,6 +12,10 @@ export class CarControls{
         this.inputsMap.set('s', 'moveBackward')
         this.inputsMap.set('a', 'moveLeft')
         this.inputsMap.set('d', 'moveRight')
+        this.inputsMap.set('arrowup', 'moveForward')
+        this.inputsMap.set('arrowdown', 'moveBackward')
+        this.inputsMap.set('arrowleft', 'moveLeft')
+        this.inputsMap.set('arrowright', 'moveRight')
         this.outRight = false
         this.outLeft = false
     }

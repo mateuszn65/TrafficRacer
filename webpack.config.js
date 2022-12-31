@@ -1,13 +1,5 @@
 const path = require('path');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 module.exports = {
-  plugins: [
-    new CopyWebpackPlugin({
-      patterns: [
-        { from: 'static' }
-      ]
-    })
-  ],
   mode: 'development',
   entry: "./src/index.js",
   output: {
@@ -19,7 +11,7 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        exclude: [/node_modules/, /static/],
+        exclude: [/node_modules/],
         use: {
           loader: "babel-loader"
         }
@@ -28,18 +20,18 @@ module.exports = {
         test: /\.(png|jpe?g|gif|bin|glb|fbx)$/,
         use: [
           {
-            loader: "url-loader",
-            options: {
-              limit: 8192,
-              fallback: "file-loader"
-            }
+            loader: "url-loader"
           }
         ]
       }
     ]
   },
   devServer: {
-    static: [path.join(__dirname, 'dist'), path.join(__dirname, 'static/models/textures')],
+    static: [
+      path.join(__dirname, 'dist'), 
+      path.join(__dirname, 'static/models'),
+      path.join(__dirname, 'static/textures')
+    ],
     open: true
   }
 };
