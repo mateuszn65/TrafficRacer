@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #score-container {
+            position: absolute;
+            left: .3em;
+            font-size: 2em;
+            user-select: none;
+            display: none;
+        }
+        #score, #close-call-bonus, #opposite-bonus{
+            display: inline;
+        }
+
+        #menu-container, #main-menu-container {
+            position: absolute;
+            background-color: rgb(98, 98, 98);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 1em;
+            border-radius: 10px;
+        }
+        #main-menu-container{
+            display: flex;
+        }
+
+        button{
+            padding: 0.5em;
+            width: 150px;
+            cursor: pointer;
+        }
+        #menu-title{
+            font-size: 1.2em;
+            padding: 0.5em;
+        }
+        #close-call-container, #opposite-bonus-container{
+            font-size: 0.5em;
+            color: green;
+            display: none;
+        }
+        #canvas-container{
+            background-color: cornflowerblue;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="score-container">
+        Score:
+        <div id="score">0</div>
+        <div id="close-call-container">
+            Close call bonus:
+            <div id="close-call-bonus">0</div>
+        </div>
+        <div id="opposite-bonus-container">
+            Opposite line bonus:
+            <div id="opposite-bonus">0</div>
+        </div>
+    </div>
+    <div id="main-menu-container">
+        <div id="menu-title">Choose gamemode
+        </div>
+        <button id="play-one-button">Play One Way Road</button>
+        <button id="play-two-button">Play Two Way Road</button>
+    </div>
+    <div id="menu-container">
+        <div id="menu-title">Game Over
+        </div>
+        <button id="play-again-button">Play Again</button>
+        <button id="menu-return-button">Return to menu</button>
+    </div>
+
+    <!-- Div to hold the Three.js canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- Your bundled code -->
+    <script type="text/javascript" src="bundle.js"></script>
+</body>
+
+</html>
