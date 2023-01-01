@@ -16,9 +16,9 @@ export class Mustang extends Car{
     }
     createFrames(){
         const params = {}
-        const carInnerFrame = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 4.4,1,1,2), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true , visible:false}))
+        const carInnerFrame = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 4.4), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true , visible:false}))
         carInnerFrame.position.set(0, .5, 0)
-        const carOuterFrame = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1, 6.4, 1, 1, 3), new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true, visible: false }))
+        const carOuterFrame = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1, 6.4), new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true, visible: false }))
         carOuterFrame.position.set(0, .5, 0)
         params.carInnerFrame = carInnerFrame
         params.carOuterFrame = carOuterFrame

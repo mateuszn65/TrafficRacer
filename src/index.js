@@ -6,13 +6,16 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import mustang from "../static/models/Mustang.fbx"
 import roadTexture from "../static/textures/road.jpg"
 import fiat from "../static/models/Fiat500.fbx"
+import grass from "../static/textures/grass.jpg"
 
 //LOADERS
 const fbxLoader = new FBXLoader();
 const textureLoader = new THREE.TextureLoader()
 // SCENE
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xa8def0);
+scene.background = new THREE.Color(0xcccccc);
+scene.fog = new THREE.Fog(0xcccccc, 0, 300);
+
 
 // CAMERA
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -68,6 +71,7 @@ const roadLine = roadSegmentWidth / 8 * 1 - 0.3
 const xPos = [-roadLine * 3, -roadLine, roadLine, roadLine * 3]
 const obstaclesModels = []
 let gameStartTime
+
 // UI
 const mainMenu = document.getElementById('main-menu-container')
 const gameOverMenu = document.getElementById('menu-container')
@@ -78,6 +82,7 @@ const loadingContainer = document.getElementById('loading-container')
 const loadingText = document.getElementById('loading-text')
 const menuTitle = document.querySelector('.game-over')
 const maxSpeedBonusElement = document.getElementById('max-speed-bonus')
+
 // GAME SCORE
 let prevZPosition = 0
 const scoreMultiplier = 0.2
@@ -85,16 +90,26 @@ let score = 0
 let closeBonus = 0
 let gameMode = ''
 let timeFromLastCloseCall = Date.now() + 1000
-let closeCallDelay = 1000
+let closeCallDelay = 400
 let closeBonusDuration = 5000
 let highScore = {
   "OneWay":0,
   "TwoWay":0
 }
 
-function loadCarFBX(){
+//MATERIALS
+const grassMaterial = new THREE.MeshBasicMaterial({ map: textureLoader.load(grass) });
+grassMaterial.map.wrapS = THREE.RepeatWrapping;
+grassMaterial.map.wrapT = THREE.RepeatWrapping;
+grassMaterial.map.repeat.set(1, 3);
+const grassGeometry = new THREE.PlaneGeometry(300, 100);
+const roadSegmentGeometry = new THREE.PlaneGeometry(roadSegmentWidth, roadSegmentLength);;
+const roadSegmentMaterial = new THREE.MeshBasicMaterial({ map: textureLoader.load(roadTexture) })
+
+
+function loadObstaclesModel(){
   fbxLoader.load(fiat, (object) => {
-    const carFrame = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.8, 0.7, 2,1,1), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true , visible:false}))
+    const carFrame = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.8, 0.7), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true , visible:false}))
     carFrame.position.set(0, 0, 0.35)
     carFrame.name = "hitbox"
     object.add(carFrame)
@@ -104,8 +119,6 @@ function loadCarFBX(){
     loadedAll()
   })
 }
-
-
 
 function loadMustang() {
   fbxLoader.load(mustang, (object) => {
@@ -126,8 +139,7 @@ function loadedAll() {
 }
 
 function initRoad() {
-  const roadSegmentGeometry = new THREE.PlaneGeometry(roadSegmentWidth, roadSegmentLength);;
-  const roadSegmentMaterial = new THREE.MeshBasicMaterial({ map: textureLoader.load(roadTexture) })
+
   for (let i = 0; i < 5; i++) {
     const roadSegment = new THREE.Mesh(roadSegmentGeometry, roadSegmentMaterial);
     roadSegment.position.set(0, 0, i * roadSegmentLength);
@@ -138,11 +150,24 @@ function initRoad() {
     roadBarrier2.position.set(roadSegmentWidth / 2 - .5, 0, 0)
     roadSegment.add(roadBarrier)
     roadSegment.add(roadBarrier2)
+
+
+    
+    // Create the grass mesh
+    const grass = new THREE.Mesh(grassGeometry, grassMaterial);
+    grass.position.set(roadSegmentWidth / 2, 0, -5);
+    const grass2 = grass.clone()
+    grass2.position.set(-roadSegmentWidth / 2, 0, -5);
+    // grass.rotateX(-Math.PI / 2)
+    roadSegment.add(grass)
+    roadSegment.add(grass2)
+
     roadSegments.push(roadSegment);
     moveable.push(roadSegment)
     scene.add(roadSegment);
   }
 }
+
 function initObstacles() {
   for (let i = 0; i < noObstacles; i++) {
     const obstacle = obstaclesModels[Math.floor(Math.random()*obstaclesModels.length)].clone()
@@ -150,6 +175,7 @@ function initObstacles() {
     obstacle.position.x = xPos[x]
     obstacle.position.z = i / (noObstacles / 5) * roadSegmentLength + roadSegmentLength / 2
     obstacle.userData['xIndex'] = x
+
     if(gameMode == 'TwoWay' && (x == 2 || x == 3)){
       obstacle.rotateZ(Math.PI)
     }
@@ -168,6 +194,7 @@ function changeLineValue(oldObstacle) {
     }
     return true
   }
+
   if (oldObstacle.userData.xIndex == 3) {
     if (Math.floor(Math.random() * 2)){
       oldObstacle.userData.xIndex = 2
@@ -175,6 +202,7 @@ function changeLineValue(oldObstacle) {
     }
     return true
   }
+
   const changeLine = Math.floor(Math.random() * 3)
   if (oldObstacle.userData.xIndex == 2){
     if (changeLine == 2){
@@ -182,6 +210,7 @@ function changeLineValue(oldObstacle) {
       oldObstacle.position.x += 2 * roadLine
       return true
     }
+
     if (changeLine == 1){
       oldObstacle.userData.xIndex  = 1
       oldObstacle.position.x -= 2 * roadLine
@@ -192,6 +221,7 @@ function changeLineValue(oldObstacle) {
     }
     return true
   }
+
   if (oldObstacle.userData.xIndex == 1){
     if (changeLine == 2){
       oldObstacle.userData.xIndex = 2
@@ -202,6 +232,7 @@ function changeLineValue(oldObstacle) {
       }
       return true
     }
+
     if (changeLine == 1){
       oldObstacle.userData.xIndex  = 0
       oldObstacle.position.x -= 2 * roadLine
@@ -248,8 +279,6 @@ function updateRoad() {
     oldRoadSegment.position.z = roadSegments[0].position.z - roadSegmentLength;
     roadSegments.unshift(oldRoadSegment)
   }
-
-
 }
 
 function checkForCloseCalles() {
@@ -302,6 +331,7 @@ function checkForBarrierCollision() {
     carControls.outLeft = false
   }
 }
+
 function checkForCollisions(originPoint, positions, collidableList = collidableMeshList) {
   for (var i = 0; i < positions.length; i += 3) {
     const localVertex = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2])
@@ -330,7 +360,6 @@ function updateObstaclesPosition(delta) {
   })
 }
 
-
 let oppositeDirectionBonus = 0
 function calculateOppositeDirectionBonus(delta){
   if(roadSegments[0].position.x < 0){
@@ -342,6 +371,7 @@ function calculateOppositeDirectionBonus(delta){
     oppositeBonusElement.parentElement.style.display = 'none'
   }
 }
+
 let maxSpeedBonus = 0
 function calculateMaxSpeedBonus(delta){
   if(car.speed == car.MAX_SPEED){
@@ -366,22 +396,19 @@ function updateScore(delta) {
   if(gameMode == 'TwoWay'){
     calculateOppositeDirectionBonus(delta)
   }
+
   calculateMaxSpeedBonus(delta)
   score += (diff + closeBonus / 10 + oppositeDirectionBonus + maxSpeedBonus / 10) * scoreMultiplier
   scoreElement.textContent = Math.floor(score)
-
 }
 
 function render() {
   requestId = requestAnimationFrame(render);
   const delta = clock.getDelta()
-  // orbitControls.update();
   stats.update()
 
   if (car) {
     car.update(delta)
-
-    
     updateRoad()
     updateObstacles()
     checkForBarrierCollision()
@@ -391,29 +418,16 @@ function render() {
     checkForCloseCalles()
     checkForCrash()
   }
-
-
-
   renderer.render(scene, camera);
 
 }
 
 
-
-
-
-
-
-
-
-
-
-// RESIZE HANDLER
+// HANDLERS
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  // keyDisplayQueue.updatePosition()
 }
 
 function resetGame(e) {
@@ -435,6 +449,7 @@ function resetGame(e) {
   if(e.target.id == "play-again-button")
   startGame()
 }
+
 function startOneWayGame(e) {
   gameMode = 'OneWay'
   startGame()
@@ -444,6 +459,7 @@ function startTwoWayGame(e) {
   gameMode = 'TwoWay'
   startGame()
 }
+
 function startGame(){
   gameStartTime = Date.now()
   mainMenu.style.display = 'none'
@@ -460,7 +476,6 @@ function returnToMenu(e){
 }
 
 window.addEventListener('keydown', carControls.keyDown.bind(carControls))
-
 window.addEventListener('keyup', carControls.keyUp.bind(carControls))
 window.addEventListener('resize', onWindowResize);
 document.getElementById("play-again-button").addEventListener("click", resetGame);
@@ -468,6 +483,5 @@ document.getElementById("play-one-button").addEventListener("click", startOneWay
 document.getElementById("play-two-button").addEventListener("click", startTwoWayGame);
 document.getElementById("menu-return-button").addEventListener("click", returnToMenu);
 
-
-loadCarFBX()
+loadObstaclesModel()
 loadMustang()
