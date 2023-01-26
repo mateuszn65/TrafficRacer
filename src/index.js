@@ -2,7 +2,6 @@ import * as THREE from "three";
 import Stats from 'stats.js';
 import { CarControls } from "./CarControls.js";
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Muscle } from "./Muscle.js";
 import muscle from "../static/models/Muscle.fbx"
 import roadTexture from "../static/textures/road.jpg"
@@ -31,7 +30,6 @@ renderer.shadowMap.enabled = true
 document.getElementById("canvas-container").appendChild(renderer.domElement);
 let requestId
 
-const orbit = new OrbitControls(camera, renderer.domElement)
 
 // STATS
 const stats = new Stats();
@@ -460,7 +458,6 @@ function render() {
   requestId = requestAnimationFrame(render);
   const delta = clock.getDelta()
   stats.update()
-  orbit.update()
   if (car) {
     car.update(delta)
     updateRoad()
