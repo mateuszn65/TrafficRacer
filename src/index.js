@@ -269,7 +269,7 @@ function changeLineValue(oldObstacle) {
       oldObstacle.userData.xIndex = 1
       oldObstacle.position.x -= 2 * roadLine
       if (gameMode == 'TwoWay') {
-        oldObstacle.rotateZ(Math.PI)
+        oldObstacle.rotateY(Math.PI)
         return false
       }
     }
@@ -281,7 +281,7 @@ function changeLineValue(oldObstacle) {
       oldObstacle.userData.xIndex = 2
       oldObstacle.position.x += 2 * roadLine
       if (gameMode == 'TwoWay') {
-        oldObstacle.rotateZ(Math.PI)
+        oldObstacle.rotateY(Math.PI)
         return false
       }
       return true
