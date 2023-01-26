@@ -1,13 +1,12 @@
 import * as THREE from "three";
 import Stats from 'stats.js';
-import { Mustang } from "./Mustang.js";
 import { CarControls } from "./CarControls.js";
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
-import mustang from "../static/models/Mustang.fbx"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { Muscle } from "./Muscle.js";
+import muscle from "../static/models/Muscle.fbx"
 import roadTexture from "../static/textures/road.jpg"
-import fiat from "../static/models/Fiat500.fbx"
-import grass from "../static/textures/grass.jpg"
-
+import car_obstacle from "../static/models/Car_Low_Poly.fbx"
 //LOADERS
 const fbxLoader = new FBXLoader();
 const textureLoader = new THREE.TextureLoader()
@@ -15,7 +14,6 @@ const textureLoader = new THREE.TextureLoader()
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xcccccc);
 scene.fog = new THREE.Fog(0xcccccc, 0, 300);
-
 
 // CAMERA
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -30,6 +28,7 @@ renderer.shadowMap.enabled = true
 document.getElementById("canvas-container").appendChild(renderer.domElement);
 let requestId
 
+const orbit = new OrbitControls(camera, renderer.domElement)
 
 // STATS
 const stats = new Stats();
@@ -56,8 +55,8 @@ let car
 const clock = new THREE.Clock()
 const carControls = new CarControls()
 let loaded = {
-    'car': false,
-    'obstacle': false,
+  'car': false,
+  'obstacle': false,
 }
 
 const roadSegmentLength = 100;
@@ -66,7 +65,7 @@ let roadSegments = [];
 let obstacles = [];
 let moveable = []
 let collidableMeshList = []
-const noObstacles = 10
+let noObstacles = 10
 const roadLine = roadSegmentWidth / 8 * 1 - 0.3
 const xPos = [-roadLine * 3, -roadLine, roadLine, roadLine * 3]
 const obstaclesModels = []
@@ -93,24 +92,29 @@ let timeFromLastCloseCall = Date.now() + 1000
 let closeCallDelay = 400
 let closeBonusDuration = 5000
 let highScore = {
-  "OneWay":0,
-  "TwoWay":0
+  "OneWay": 0,
+  "TwoWay": 0
 }
 
 //MATERIALS
-const grassMaterial = new THREE.MeshBasicMaterial({ map: textureLoader.load(grass) });
-grassMaterial.map.wrapS = THREE.RepeatWrapping;
-grassMaterial.map.wrapT = THREE.RepeatWrapping;
-grassMaterial.map.repeat.set(1, 3);
-const grassGeometry = new THREE.PlaneGeometry(300, 100);
+// const grassMaterial = new THREE.MeshBasicMaterial({ map: textureLoader.load(grass) });
+// grassMaterial.map.wrapS = THREE.RepeatWrapping;
+// grassMaterial.map.wrapT = THREE.RepeatWrapping;
+// grassMaterial.map.repeat.set(1, 3);
+// const grassGeometry = new THREE.PlaneGeometry(300, 100);
 const roadSegmentGeometry = new THREE.PlaneGeometry(roadSegmentWidth, roadSegmentLength);;
 const roadSegmentMaterial = new THREE.MeshBasicMaterial({ map: textureLoader.load(roadTexture) })
 
 
-function loadObstaclesModel(){
-  fbxLoader.load(fiat, (object) => {
-    const carFrame = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.8, 0.7), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true , visible:false}))
-    carFrame.position.set(0, 0, 0.35)
+function loadObstaclesModel() {
+  fbxLoader.load(car_obstacle, (object) => {
+    object.scale.set(0.01, 0.01, 0.01)
+    object.rotateY(Math.PI)
+    const width = 4 / object.scale.x
+    const height = 1 / object.scale.y
+    const depth = 8 / object.scale.z
+    const carFrame = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true, visible: false }))
+    carFrame.position.set(0, height, 0)
     carFrame.name = "hitbox"
     object.add(carFrame)
     object.position.y = 0.15
@@ -120,11 +124,11 @@ function loadObstaclesModel(){
   })
 }
 
-function loadMustang() {
-  fbxLoader.load(mustang, (object) => {
-    object.scale.set(1.6, 1.6, 1.6)
-    car = new Mustang(object, carControls, moveable)
+function loadMuscle() {
+  fbxLoader.load(muscle, (object) => {
+    car = new Muscle(object, carControls, moveable)
     scene.add(object)
+    console.log(object)
     loaded.car = true
     loadedAll()
   })
@@ -152,15 +156,15 @@ function initRoad() {
     roadSegment.add(roadBarrier2)
 
 
-    
+
     // Create the grass mesh
-    const grass = new THREE.Mesh(grassGeometry, grassMaterial);
-    grass.position.set(roadSegmentWidth / 2, 0, -5);
-    const grass2 = grass.clone()
-    grass2.position.set(-roadSegmentWidth / 2, 0, -5);
+    // const grass = new THREE.Mesh(grassGeometry, grassMaterial);
+    // grass.position.set(roadSegmentWidth / 2, 0, -5);
+    // const grass2 = grass.clone()
+    // grass2.position.set(-roadSegmentWidth / 2, 0, -5);
     // grass.rotateX(-Math.PI / 2)
-    roadSegment.add(grass)
-    roadSegment.add(grass2)
+    // roadSegment.add(grass)
+    // roadSegment.add(grass2)
 
     roadSegments.push(roadSegment);
     moveable.push(roadSegment)
@@ -170,25 +174,26 @@ function initRoad() {
 
 function initObstacles() {
   for (let i = 0; i < noObstacles; i++) {
-    const obstacle = obstaclesModels[Math.floor(Math.random()*obstaclesModels.length)].clone()
+    const obstacle = obstaclesModels[Math.floor(Math.random() * obstaclesModels.length)].clone()
     const x = Math.floor(Math.random() * 4)
     obstacle.position.x = xPos[x]
     obstacle.position.z = i / (noObstacles / 5) * roadSegmentLength + roadSegmentLength / 2
     obstacle.userData['xIndex'] = x
 
-    if(gameMode == 'TwoWay' && (x == 2 || x == 3)){
-      obstacle.rotateZ(Math.PI)
+    if (gameMode == 'TwoWay' && (x == 2 || x == 3)) {
+      obstacle.rotateY(Math.PI)
     }
     obstacles.push(obstacle);
     moveable.push(obstacle)
     collidableMeshList.push(obstacle.getObjectByName("hitbox"))
+    console.log(collidableMeshList)
     scene.add(obstacle);
   }
 }
 
 function changeLineValue(oldObstacle) {
   if (oldObstacle.userData.xIndex == 0) {
-    if (Math.floor(Math.random() * 2)){
+    if (Math.floor(Math.random() * 2)) {
       oldObstacle.userData.xIndex = 1
       oldObstacle.position.x += 2 * roadLine
     }
@@ -196,7 +201,7 @@ function changeLineValue(oldObstacle) {
   }
 
   if (oldObstacle.userData.xIndex == 3) {
-    if (Math.floor(Math.random() * 2)){
+    if (Math.floor(Math.random() * 2)) {
       oldObstacle.userData.xIndex = 2
       oldObstacle.position.x -= 2 * roadLine
     }
@@ -204,17 +209,17 @@ function changeLineValue(oldObstacle) {
   }
 
   const changeLine = Math.floor(Math.random() * 3)
-  if (oldObstacle.userData.xIndex == 2){
-    if (changeLine == 2){
+  if (oldObstacle.userData.xIndex == 2) {
+    if (changeLine == 2) {
       oldObstacle.userData.xIndex = 3
       oldObstacle.position.x += 2 * roadLine
       return true
     }
 
-    if (changeLine == 1){
-      oldObstacle.userData.xIndex  = 1
+    if (changeLine == 1) {
+      oldObstacle.userData.xIndex = 1
       oldObstacle.position.x -= 2 * roadLine
-      if (gameMode == 'TwoWay'){
+      if (gameMode == 'TwoWay') {
         oldObstacle.rotateZ(Math.PI)
         return false
       }
@@ -222,19 +227,19 @@ function changeLineValue(oldObstacle) {
     return true
   }
 
-  if (oldObstacle.userData.xIndex == 1){
-    if (changeLine == 2){
+  if (oldObstacle.userData.xIndex == 1) {
+    if (changeLine == 2) {
       oldObstacle.userData.xIndex = 2
       oldObstacle.position.x += 2 * roadLine
-      if (gameMode == 'TwoWay'){
+      if (gameMode == 'TwoWay') {
         oldObstacle.rotateZ(Math.PI)
         return false
       }
       return true
     }
 
-    if (changeLine == 1){
-      oldObstacle.userData.xIndex  = 0
+    if (changeLine == 1) {
+      oldObstacle.userData.xIndex = 0
       oldObstacle.position.x -= 2 * roadLine
     }
   }
@@ -246,7 +251,7 @@ function updateObstacles() {
 
   if (obstacles[0].position.z < -roadSegmentLength) {
     const oldObstacle = obstacles.shift()
-    if(changeLineValue(oldObstacle)){
+    if (changeLineValue(oldObstacle)) {
       oldObstacle.position.z = obstacles[obstacles.length - 1].position.z + (5 / noObstacles) * roadSegmentLength;
       if (oldObstacle.position.z > roadSegmentLength * 4)
         oldObstacle.position.z = roadSegmentLength * 4
@@ -255,12 +260,12 @@ function updateObstacles() {
     return
   }
 
-  if (obstacles[noObstacles-1].position.z > roadSegmentLength * 4) {
+  if (obstacles[noObstacles - 1].position.z > roadSegmentLength * 4) {
     const oldObstacle = obstacles.pop()
-    if(changeLineValue(oldObstacle)){
+    if (changeLineValue(oldObstacle)) {
       oldObstacle.position.z = obstacles[0].position.z - (5 / noObstacles) * roadSegmentLength;
-    if (oldObstacle.position.z < -roadSegmentLength)
-      oldObstacle.position.z = -roadSegmentLength
+      if (oldObstacle.position.z < -roadSegmentLength)
+        oldObstacle.position.z = -roadSegmentLength
     }
     obstacles.unshift(oldObstacle)
   }
@@ -284,7 +289,8 @@ function updateRoad() {
 function checkForCloseCalles() {
   if (Date.now() - timeFromLastCloseCall < closeCallDelay)
     return
-  if (checkForCollisions(car.carOuterFrame.position.clone(), car.carOuterFrame.geometry.attributes.position.array) && car && car.speed) {
+
+  if (checkForCollisions(car.carOuterFrame)) {
     closeBonus += 10
     timeFromLastCloseCall = Date.now()
     closeCallElement.parentElement.style.display = "block"
@@ -299,22 +305,23 @@ function checkForCloseCalles() {
 function checkForCrash() {
   if (!carControls.playing || Date.now() - gameStartTime < 1000)
     return
-  if (checkForCollisions(car.carInnerFrame.position.clone(), car.carInnerFrame.geometry.attributes.position.array)) {
+
+  if (checkForCollisions(car.carInnerFrame)) {
     cancelAnimationFrame(requestId);
     closeCallElement.parentElement.style.display = 'none'
     maxSpeedBonusElement.parentElement.style.display = 'none'
     oppositeBonusElement.parentElement.style.display = 'none'
     updateHighScore()
-    gameOverMenu.style.display = 'flex' 
+    gameOverMenu.style.display = 'flex'
   }
 }
 
-function updateHighScore(){
+function updateHighScore() {
   score = Math.floor(score)
-  if(score > highScore[gameMode]){
+  if (score > highScore[gameMode]) {
     highScore[gameMode] = score
     menuTitle.textContent = `Game Over \n New High Score: ${score}!`
-  }else{
+  } else {
     menuTitle.textContent = `Game Over \n Score: ${score}`
   }
 }
@@ -332,53 +339,52 @@ function checkForBarrierCollision() {
   }
 }
 
-function checkForCollisions(originPoint, positions, collidableList = collidableMeshList) {
-  for (var i = 0; i < positions.length; i += 3) {
-    const localVertex = new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2])
-    const globalVertex = localVertex.applyMatrix4(car.carInnerFrame.matrix);
-    const directionVector = globalVertex.sub(car.carInnerFrame.position);
-
-    const ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
-    const collisionResults = ray.intersectObjects(collidableList);
-    if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length())
+function checkForCollisions(mesh, otherMeshes = collidableMeshList) {
+  const mainBoundingBox = new THREE.Box3().setFromObject(mesh);
+  for (let otherMesh of otherMeshes) {
+    const otherBoundingBox = new THREE.Box3().setFromObject(otherMesh);
+    if (mainBoundingBox.intersectsBox(otherBoundingBox)) {
+      console.log("Collision detected between main mesh and " + otherMesh.name);
       return true
+    }
   }
-
   return false
+
 }
+
 
 const obstaclesSpeed = 30
 function updateObstaclesPosition(delta) {
   obstacles.forEach(obstacle => {
 
-    if(gameMode == 'TwoWay' && (obstacle.userData.xIndex == 2 || obstacle.userData.xIndex == 3)){
+    if (gameMode == 'TwoWay' && (obstacle.userData.xIndex == 2 || obstacle.userData.xIndex == 3)) {
       obstacle.position.z -= obstaclesSpeed * delta
     }
-    else{
+    else {
       obstacle.position.z += obstaclesSpeed * delta
     }
   })
 }
 
 let oppositeDirectionBonus = 0
-function calculateOppositeDirectionBonus(delta){
-  if(roadSegments[0].position.x < 0){
+function calculateOppositeDirectionBonus(delta) {
+  if (roadSegments[0].position.x < 0) {
     oppositeDirectionBonus += delta
     oppositeBonusElement.textContent = Math.floor(oppositeDirectionBonus)
     oppositeBonusElement.parentElement.style.display = 'block'
-  }else{
+  } else {
     oppositeDirectionBonus = 0
     oppositeBonusElement.parentElement.style.display = 'none'
   }
 }
 
 let maxSpeedBonus = 0
-function calculateMaxSpeedBonus(delta){
-  if(car.speed == car.MAX_SPEED){
+function calculateMaxSpeedBonus(delta) {
+  if (car.speed == car.MAX_SPEED) {
     maxSpeedBonus += delta
     maxSpeedBonusElement.textContent = Math.floor(maxSpeedBonus)
     maxSpeedBonusElement.parentElement.style.display = 'block'
-  }else{
+  } else {
     maxSpeedBonus = 0
     maxSpeedBonusElement.parentElement.style.display = 'none'
   }
@@ -393,7 +399,7 @@ function updateScore(delta) {
 
   prevZPosition = currZPosition
 
-  if(gameMode == 'TwoWay'){
+  if (gameMode == 'TwoWay') {
     calculateOppositeDirectionBonus(delta)
   }
 
@@ -406,13 +412,13 @@ function render() {
   requestId = requestAnimationFrame(render);
   const delta = clock.getDelta()
   stats.update()
-
+  orbit.update()
   if (car) {
     car.update(delta)
     updateRoad()
     updateObstacles()
     checkForBarrierCollision()
-    
+
     updateObstaclesPosition(delta)
     updateScore(delta)
     checkForCloseCalles()
@@ -442,25 +448,27 @@ function resetGame(e) {
 
   roadSegments = []
   obstacles = [];
-  moveable.splice(0,moveable.length)
+  moveable.splice(0, moveable.length)
   collidableMeshList = []
   carControls.reset()
   car.reset()
-  if(e.target.id == "play-again-button")
-  startGame()
+  if (e.target.id == "play-again-button")
+    startGame()
 }
 
 function startOneWayGame(e) {
   gameMode = 'OneWay'
+  noObstacles = 9
   startGame()
 }
 
 function startTwoWayGame(e) {
   gameMode = 'TwoWay'
+  noObstacles = 5
   startGame()
 }
 
-function startGame(){
+function startGame() {
   gameStartTime = Date.now()
   mainMenu.style.display = 'none'
   scoreElement.parentElement.style.display = 'inline'
@@ -469,7 +477,7 @@ function startGame(){
   render();
 }
 
-function returnToMenu(e){
+function returnToMenu(e) {
   gameOverMenu.style.display = 'none'
   mainMenu.style.display = 'flex'
   resetGame(e)
@@ -484,4 +492,4 @@ document.getElementById("play-two-button").addEventListener("click", startTwoWay
 document.getElementById("menu-return-button").addEventListener("click", returnToMenu);
 
 loadObstaclesModel()
-loadMustang()
+loadMuscle()
