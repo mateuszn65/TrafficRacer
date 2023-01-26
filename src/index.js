@@ -7,6 +7,9 @@ import { Muscle } from "./Muscle.js";
 import muscle from "../static/models/Muscle.fbx"
 import roadTexture from "../static/textures/road.jpg"
 import car_obstacle from "../static/models/Car_Low_Poly.fbx"
+import vaz from "../static/models/vaz.fbx"
+import truck from "../static/models/truck.fbx"
+import offroadcar from "../static/models/offroadcar.fbx"
 //LOADERS
 const fbxLoader = new FBXLoader();
 const textureLoader = new THREE.TextureLoader()
@@ -56,7 +59,7 @@ const clock = new THREE.Clock()
 const carControls = new CarControls()
 let loaded = {
   'car': false,
-  'obstacle': false,
+  'obstacles': [],
 }
 
 const roadSegmentLength = 100;
@@ -97,18 +100,37 @@ let highScore = {
 }
 
 //MATERIALS
-// const grassMaterial = new THREE.MeshBasicMaterial({ map: textureLoader.load(grass) });
-// grassMaterial.map.wrapS = THREE.RepeatWrapping;
-// grassMaterial.map.wrapT = THREE.RepeatWrapping;
-// grassMaterial.map.repeat.set(1, 3);
-// const grassGeometry = new THREE.PlaneGeometry(300, 100);
 const roadSegmentGeometry = new THREE.PlaneGeometry(roadSegmentWidth, roadSegmentLength);;
 const roadSegmentMaterial = new THREE.MeshBasicMaterial({ map: textureLoader.load(roadTexture) })
 
 
 function loadObstaclesModel() {
-  fbxLoader.load(car_obstacle, (object) => {
+  const loadFunctions = [loadVaz, loadRedCar, loadTruck, loadOffRoadCar]
+  for (let i = 0; i < loadFunctions.length; i++) {
+    loaded['obstacles'].push(false)
+  }
+  for (let i = 0; i < loadFunctions.length; i++) {
+    loadFunctions[i](i)
+  }
+}
+function loadVaz(index = 0){
+  fbxLoader.load(vaz, (object) => {
     object.scale.set(0.01, 0.01, 0.01)
+    object.position.y = 1.4
+    const width = 3 / object.scale.x
+    const height = 1 / object.scale.y
+    const depth = 9 / object.scale.z
+    const carFrame = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true, visible: false }))
+    carFrame.name = "hitbox"
+    object.add(carFrame)
+    obstaclesModels.push(object)
+    loaded['obstacles'][index] = true
+    loadedAll()
+  })
+}
+function loadRedCar(index = 0){
+  fbxLoader.load(car_obstacle, (object) => {
+    object.scale.set(0.008, 0.008, 0.008)
     object.rotateY(Math.PI)
     const width = 4 / object.scale.x
     const height = 1 / object.scale.y
@@ -117,9 +139,43 @@ function loadObstaclesModel() {
     carFrame.position.set(0, height, 0)
     carFrame.name = "hitbox"
     object.add(carFrame)
-    object.position.y = 0.15
     obstaclesModels.push(object)
-    loaded.obstacle = true
+    loaded['obstacles'][index] = true
+    loadedAll()
+  })
+}
+
+function loadOffRoadCar(index = 0){
+  fbxLoader.load(offroadcar, (object) => {
+    object.scale.set(0.014, 0.014, 0.014)
+    object.rotateY(Math.PI/2)
+    object.position.y = 1.5
+    const width = 4 / object.scale.x
+    const height = 1 / object.scale.y
+    const depth = 7 / object.scale.z
+    const carFrame = new THREE.Mesh(new THREE.BoxGeometry(depth, height, width), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true, visible: false }))
+    carFrame.position.set(-0.5/ object.scale.x, 0, 0)
+    carFrame.name = "hitbox"
+    object.add(carFrame)
+    obstaclesModels.push(object)
+    loaded['obstacles'][index] = true
+    loadedAll()
+  })
+}
+
+function loadTruck(index = 0){
+  fbxLoader.load(truck, (object) => {
+    object.scale.set(0.065, 0.065, 0.065)
+    const width = 4.5 / object.scale.x
+    const height = 1 / object.scale.y
+    const depth = 28 / object.scale.z
+    const carFrame = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true, visible: false }))
+    carFrame.position.set(0, -height, -depth / 2 + 4.5 / object.scale.z)
+    carFrame.name = "hitbox"
+    object.add(carFrame)
+    object.position.y = 2.85
+    obstaclesModels.push(object)
+    loaded['obstacles'][index] = true
     loadedAll()
   })
 }
@@ -133,9 +189,16 @@ function loadMuscle() {
     loadedAll()
   })
 }
-
+function loadedAllObstacles() {
+  for (let i = 0; i < loaded['obstacles'].length; i++) {
+    if (!loaded['obstacles'][i]) {
+      return false
+    }
+  }
+  return true
+}
 function loadedAll() {
-  if (loaded.car && loaded.obstacle) {
+  if (loaded.car && loadedAllObstacles() ) {
     loadingContainer.style.display = 'none'
     mainMenu.style.display = 'flex'
     loadingText.style.display = 'none'
@@ -143,7 +206,6 @@ function loadedAll() {
 }
 
 function initRoad() {
-
   for (let i = 0; i < 5; i++) {
     const roadSegment = new THREE.Mesh(roadSegmentGeometry, roadSegmentMaterial);
     roadSegment.position.set(0, 0, i * roadSegmentLength);
@@ -154,17 +216,6 @@ function initRoad() {
     roadBarrier2.position.set(roadSegmentWidth / 2 - .5, 0, 0)
     roadSegment.add(roadBarrier)
     roadSegment.add(roadBarrier2)
-
-
-
-    // Create the grass mesh
-    // const grass = new THREE.Mesh(grassGeometry, grassMaterial);
-    // grass.position.set(roadSegmentWidth / 2, 0, -5);
-    // const grass2 = grass.clone()
-    // grass2.position.set(-roadSegmentWidth / 2, 0, -5);
-    // grass.rotateX(-Math.PI / 2)
-    // roadSegment.add(grass)
-    // roadSegment.add(grass2)
 
     roadSegments.push(roadSegment);
     moveable.push(roadSegment)
@@ -287,7 +338,7 @@ function updateRoad() {
 }
 
 function checkForCloseCalles() {
-  if (Date.now() - timeFromLastCloseCall < closeCallDelay)
+  if (!carControls.playing || Date.now() - timeFromLastCloseCall < closeCallDelay)
     return
 
   if (checkForCollisions(car.carOuterFrame)) {
@@ -303,7 +354,7 @@ function checkForCloseCalles() {
 }
 
 function checkForCrash() {
-  if (!carControls.playing || Date.now() - gameStartTime < 1000)
+  if (!carControls.playing || Date.now() - gameStartTime < 2000)
     return
 
   if (checkForCollisions(car.carInnerFrame)) {

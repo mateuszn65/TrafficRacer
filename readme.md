@@ -27,9 +27,9 @@ Projekt został stworzony całkowicie za pomocą three.js i nie używa bibliotek
 
     - ***CarControls.js*** mapuje input na odpowiednie ruchy, które następnie odczytuje klasa Car.js
 
-    - ***Mustang.js*** rozszerzenie klasy Car.js, które mapuje mesh dla kół i karoserji odpowiednio dla ładowanego modelu
+    - ***Muscle.js*** rozszerzenie klasy Car.js, które mapuje mesh dla kół i karoserji odpowiednio dla ładowanego modelu
 
-    - ***index.js*** główny plik, który tworzy i renderuje scene, wylicza punkty, aktualizuje drogę dając wrażenie nieskończonej(to droga się porusza, nie samochód) oraz wykrywa kolizje na podstawie przykładku [Stemkowskiego](http://stemkoski.github.io/Three.js/Collision-Detection.html)
+    - ***index.js*** główny plik, który tworzy i renderuje scene, wylicza punkty, aktualizuje drogę dając wrażenie nieskończonej(to droga się porusza, nie samochód) oraz wykrywa kolizje za pomocą bounding boxów
 
 
 3. ***static*** zawiera modele samochodów w formacie fbx oraz texture drogi

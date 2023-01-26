@@ -20,16 +20,16 @@ export class Muscle extends Car{
     }
     createFrames(){
         const params = {}
-        const innerWidth = 3 / this.modelScale
+        const innerWidth = 2.5 / this.modelScale
         const innerHeight = 1 / this.modelScale
-        const innerDepth = 8 / this.modelScale
-        const carInnerFrame = new THREE.Mesh(new THREE.BoxGeometry(innerWidth, innerHeight, innerDepth ), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true , visible:false}))
+        const innerDepth = 7 / this.modelScale
+        const carInnerFrame = new THREE.Mesh(new THREE.BoxGeometry(innerWidth, innerHeight, innerDepth ), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true , visible: false}))
         carInnerFrame.position.set(0, -this.offSet.y / this.modelScale + innerHeight, 0)
         carInnerFrame.name = "carInnerFrame"
 
-        const outerWidth = 6 / this.modelScale
+        const outerWidth = 5 / this.modelScale
         const outerHeight = 1 / this.modelScale
-        const outerDepth = 11 / this.modelScale
+        const outerDepth = 10 / this.modelScale
         const carOuterFrame = new THREE.Mesh(new THREE.BoxGeometry(outerWidth, outerHeight, outerDepth), new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true, visible: false }))
         carOuterFrame.position.set(0, -this.offSet.y / this.modelScale + innerHeight, 0)
         carOuterFrame.name = "carOuterFrame"
