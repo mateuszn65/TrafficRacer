@@ -184,7 +184,6 @@ function loadMuscle() {
   fbxLoader.load(muscle, (object) => {
     car = new Muscle(object, carControls, moveable)
     scene.add(object)
-    console.log(object)
     loaded.car = true
     loadedAll()
   })
@@ -237,7 +236,6 @@ function initObstacles() {
     obstacles.push(obstacle);
     moveable.push(obstacle)
     collidableMeshList.push(obstacle.getObjectByName("hitbox"))
-    console.log(collidableMeshList)
     scene.add(obstacle);
   }
 }
@@ -395,7 +393,6 @@ function checkForCollisions(mesh, otherMeshes = collidableMeshList) {
   for (let otherMesh of otherMeshes) {
     const otherBoundingBox = new THREE.Box3().setFromObject(otherMesh);
     if (mainBoundingBox.intersectsBox(otherBoundingBox)) {
-      console.log("Collision detected between main mesh and " + otherMesh.name);
       return true
     }
   }
